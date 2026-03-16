@@ -13,7 +13,6 @@ const workOrderSchema = new mongoose.Schema({
   },
   workOrderNumber: {
     type: String,
-    required: true,
     unique: true
   },
   description: {
@@ -99,8 +98,8 @@ const workOrderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate work order number before saving
-workOrderSchema.pre('save', async function(next) {
+// Generate work order number before validation/save
+workOrderSchema.pre('validate', async function(next) {
   if (!this.workOrderNumber) {
     const prefix = 'WO';
     const date = new Date();

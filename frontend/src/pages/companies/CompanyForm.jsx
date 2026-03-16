@@ -1,9 +1,11 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
-import { createCompany } from '../../store/slices/companySlice'
+import { useEffect, useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { clearSelectedCompany, createCompany, getCompany, updateCompany } from '../../store/slices/companySlice'
 
 const CompanyForm = () => {
+  const { id } = useParams()
+  const isEdit = Boolean(id)
   const [formData, setFormData] = useState({
     name: '',
     type: 'construction',
@@ -19,6 +21,35 @@ const CompanyForm = () => {
 
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const { selectedCompany, isLoading, isError, message } = useSelector((state) => state.company)
+
+  useEffect(() => {
+    if (!isEdit) {
+      dispatch(clearSelectedCompany())
+      return
+    }
+    dispatch(getCompany(id))
+    return () => {
+      dispatch(clearSelectedCompany())
+    }
+  }, [dispatch, id, isEdit])
+
+  useEffect(() => {
+    if (!isEdit) return
+    if (!selectedCompany?._id) return
+    setFormData({
+      name: selectedCompany.name || '',
+      type: selectedCompany.type || 'construction',
+      email: selectedCompany.email || '',
+      phone: selectedCompany.phone || '',
+      address: {
+        street: selectedCompany.address?.street || '',
+        city: selectedCompany.address?.city || '',
+        state: selectedCompany.address?.state || '',
+        country: selectedCompany.address?.country || '',
+      },
+    })
+  }, [isEdit, selectedCompany])
 
   const onChange = (e) => {
     const { name, value } = e.target
@@ -33,15 +64,27 @@ const CompanyForm = () => {
     }
   }
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault()
-    dispatch(createCompany(formData))
+    if (isEdit) {
+      await dispatch(updateCompany({ id, companyData: formData }))
+    } else {
+      await dispatch(createCompany(formData))
+    }
     navigate('/companies')
   }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Add New Company</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">
+        {isEdit ? 'Edit Company' : 'Add New Company'}
+      </h1>
+
+      {isError && (
+        <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {message || 'Something went wrong'}
+        </div>
+      )}
 
       <form onSubmit={onSubmit} className="bg-white rounded-xl shadow-sm p-6 max-w-2xl">
         <div className="mb-4">
@@ -131,9 +174,10 @@ const CompanyForm = () => {
 
         <button
           type="submit"
+          disabled={isLoading}
           className="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700"
         >
-          Create Company
+          {isLoading ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Company'}
         </button>
       </form>
     </div>

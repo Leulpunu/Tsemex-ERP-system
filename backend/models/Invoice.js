@@ -37,7 +37,6 @@ const invoiceSchema = new mongoose.Schema({
   },
   invoiceNumber: {
     type: String,
-    required: true,
     unique: true
   },
   invoiceType: {
@@ -113,8 +112,8 @@ const invoiceSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate invoice number before saving
-invoiceSchema.pre('save', async function(next) {
+// Generate invoice number before validation/save
+invoiceSchema.pre('validate', async function(next) {
   if (!this.invoiceNumber) {
     const prefix = this.invoiceType === 'sale' ? 'INV' : 'PO';
     const date = new Date();

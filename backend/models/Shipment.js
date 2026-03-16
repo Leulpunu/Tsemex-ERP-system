@@ -8,7 +8,6 @@ const shipmentSchema = new mongoose.Schema({
   },
   shipmentNumber: {
     type: String,
-    required: true,
     unique: true
   },
   type: {
@@ -107,8 +106,8 @@ const shipmentSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Generate shipment number before saving
-shipmentSchema.pre('save', async function(next) {
+// Generate shipment number before validation/save
+shipmentSchema.pre('validate', async function(next) {
   if (!this.shipmentNumber) {
     const prefix = this.type === 'import' ? 'IMP' : this.type === 'export' ? 'EXP' : 'TRN';
     const date = new Date();

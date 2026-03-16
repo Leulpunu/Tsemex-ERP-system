@@ -1,12 +1,16 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import axios from 'axios'
+import { api } from '../../api/client'
 
-const API_URL = 'http://localhost:5000/api/auth/'
+const storedUser = JSON.parse(localStorage.getItem('user'))
 
-const user = JSON.parse(localStorage.getItem('user'))
+const normalizeAuthResponse = (payload) => {
+  if (!payload) return null
+  if (payload.token && payload.data) return { ...payload.data, token: payload.token }
+  return payload
+}
 
 const initialState = {
-  user: user ? user : null,
+  user: storedUser ? storedUser : null,
   isLoading: false,
   isError: false,
   isSuccess: false,
@@ -17,11 +21,12 @@ export const register = createAsyncThunk(
   'auth/register',
   async (userData, thunkAPI) => {
     try {
-      const response = await axios.post(API_URL + 'register', userData)
+      const response = await api.post('/auth/register', userData)
       if (response.data) {
-        localStorage.setItem('user', JSON.stringify(response.data))
+        const normalized = normalizeAuthResponse(response.data)
+        localStorage.setItem('user', JSON.stringify(normalized))
       }
-      return response.data
+      return normalizeAuthResponse(response.data)
     } catch (error) {
       const message =
         (error.response && error.response.data && error.response.data.message) ||
@@ -36,11 +41,12 @@ export const login = createAsyncThunk(
   'auth/login',
   async (userData, thunkAPI) => {
     try {
-      const response = await axios.post(API_URL + 'login', userData)
+      const response = await api.post('/auth/login', userData)
       if (response.data) {
-        localStorage.setItem('user', JSON.stringify(response.data))
+        const normalized = normalizeAuthResponse(response.data)
+        localStorage.setItem('user', JSON.stringify(normalized))
       }
-      return response.data
+      return normalizeAuthResponse(response.data)
     } catch (error) {
       const message =
         (error.response && error.response.data && error.response.data.message) ||

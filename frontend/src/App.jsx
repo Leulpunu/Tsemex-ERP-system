@@ -17,7 +17,9 @@ import WorkOrderList from './pages/emech/WorkOrderList'
 import ShipmentList from './pages/imex/ShipmentList'
 import PropertyList from './pages/realestate/PropertyList'
 import CustomerList from './pages/customers/CustomerList'
+import CustomerForm from './pages/customers/CustomerForm'
 import SupplierList from './pages/suppliers/SupplierList'
+import SupplierForm from './pages/suppliers/SupplierForm'
 import WarehouseList from './pages/warehouses/WarehouseList'
 
 function App() {
@@ -46,7 +48,11 @@ function App() {
         <Route path="shipments" element={<ShipmentList />} />
         <Route path="properties" element={<PropertyList />} />
         <Route path="customers" element={<CustomerList />} />
+        <Route path="customers/new" element={<CustomerForm />} />
+        <Route path="customers/:id/edit" element={<CustomerForm />} />
         <Route path="suppliers" element={<SupplierList />} />
+        <Route path="suppliers/new" element={<SupplierForm />} />
+        <Route path="suppliers/:id/edit" element={<SupplierForm />} />
         <Route path="warehouses" element={<WarehouseList />} />
       </Route>
     </Routes>
