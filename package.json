@@ -1,0 +1,10 @@
+{
+  "name": "tsemex-erp-system",
+  "version": "1.0.0",
+  "description": "Tsemex Global Enterprise ERP System",
+  "scripts": {
+    "start": "cd backend && node server.js",
+    "dev": "cd frontend && npm run dev",
+    "install-all": "cd backend && npm install && cd ../frontend && npm install"
+  }
+}
