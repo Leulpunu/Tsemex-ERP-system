@@ -33,8 +33,18 @@ export const updateShipment = createAsyncThunk('shipments/update', async ({ id, 
   }
 })
 
+export const getShipment = createAsyncThunk('shipments/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/shipments/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   shipments: [],
+  selectedShipment: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -43,7 +53,11 @@ const initialState = {
 const shipmentSlice = createSlice({
   name: 'shipments',
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedShipment: (state) => {
+      state.selectedShipment = null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getShipments.pending, (state) => {
@@ -83,8 +97,21 @@ const shipmentSlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getShipment.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getShipment.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedShipment = action.payload?.data || null
+      })
+      .addCase(getShipment.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
+export const { clearSelectedShipment } = shipmentSlice.actions
 export default shipmentSlice.reducer
 

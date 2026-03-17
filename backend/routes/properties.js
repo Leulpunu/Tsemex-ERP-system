@@ -19,6 +19,16 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+    res.json({ success: true, data: property });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 router.post('/', protect, async (req, res) => {
   try {
     const companyId = getCompanyId(req);

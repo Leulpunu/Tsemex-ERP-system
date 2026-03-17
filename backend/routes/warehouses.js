@@ -17,6 +17,17 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const warehouse = await Warehouse.findById(req.params.id);
+    if (!warehouse) return res.status(404).json({ message: 'Warehouse not found' });
+    res.json({ success: true, data: warehouse });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 router.post('/', protect, authorize('super_admin', 'company_admin', 'inventory_manager'), async (req, res) => {
   try {
     const companyId = getCompanyId(req);

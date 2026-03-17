@@ -45,8 +45,18 @@ export const deleteWarehouse = createAsyncThunk('warehouses/delete', async (id, 
   }
 })
 
+export const getWarehouse = createAsyncThunk('warehouses/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/warehouses/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   warehouses: [],
+  selectedWarehouse: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -55,7 +65,11 @@ const initialState = {
 const warehouseSlice = createSlice({
   name: 'warehouses',
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedWarehouse: (state) => {
+      state.selectedWarehouse = null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getWarehouses.pending, (state) => {
@@ -108,8 +122,21 @@ const warehouseSlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getWarehouse.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getWarehouse.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedWarehouse = action.payload?.data || null
+      })
+      .addCase(getWarehouse.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
+export const { clearSelectedWarehouse } = warehouseSlice.actions
 export default warehouseSlice.reducer
 

@@ -33,8 +33,18 @@ export const updateWorkOrder = createAsyncThunk('workOrders/update', async ({ id
   }
 })
 
+export const getWorkOrder = createAsyncThunk('workOrders/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/work-orders/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   workOrders: [],
+  selectedWorkOrder: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -43,7 +53,11 @@ const initialState = {
 const workOrderSlice = createSlice({
   name: 'workOrders',
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedWorkOrder: (state) => {
+      state.selectedWorkOrder = null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getWorkOrders.pending, (state) => {
@@ -83,8 +97,21 @@ const workOrderSlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getWorkOrder.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getWorkOrder.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedWorkOrder = action.payload?.data || null
+      })
+      .addCase(getWorkOrder.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
+export const { clearSelectedWorkOrder } = workOrderSlice.actions
 export default workOrderSlice.reducer
 

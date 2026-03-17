@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Plus, Trash2, Building, Pencil } from 'lucide-react'
-import { createDepartment, deleteDepartment, getDepartments, updateDepartment } from '../../store/slices/departmentSlice'
+import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { deleteDepartment, getDepartments } from '../../store/slices/departmentSlice'
 
 const DepartmentList = () => {
   const dispatch = useDispatch()
@@ -14,22 +16,14 @@ const DepartmentList = () => {
     dispatch(getDepartments(companyId ? { companyId } : undefined))
   }, [dispatch, currentCompany?._id, user?.role])
 
-  const onCreate = async () => {
-    const name = prompt('Department name')
-    if (!name) return
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(createDepartment({ departmentData: { name }, companyId }))
-  }
-
-  const onEdit = async (dept) => {
-    const name = prompt('New department name', dept.name)
-    if (!name || name === dept.name) return
-    await dispatch(updateDepartment({ id: dept._id, departmentData: { name } }))
-  }
+  useEffect(() => {
+    if (isError && message) toast.error(message)
+  }, [isError, message])
 
   const onDelete = async (id) => {
     if (!confirm('Delete this department?')) return
     await dispatch(deleteDepartment(id))
+    toast.success('Department deleted')
   }
 
   return (
@@ -39,14 +33,10 @@ const DepartmentList = () => {
           <Building size={28} className="text-purple-600" />
           <h1 className="text-2xl font-bold text-gray-800">Departments</h1>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
-        >
+        <Link className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700" to="/departments/new">
           <Plus size={18} />
           New Department
-        </button>
+        </Link>
       </div>
 
       {isError && (
@@ -79,14 +69,12 @@ const DepartmentList = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{dept.manager?.name || 'TBD'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(dept)}
+                    <Link
+                      to={`/departments/${dept._id}/edit`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900 mr-4"
                     >
-                      <Pencil size={16} />
-                      Edit
-                    </button>
+                      <Pencil size={16} /> Edit
+                    </Link>
                     <button type="button" onClick={() => onDelete(dept._id)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={16} />
                     </button>

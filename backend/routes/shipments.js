@@ -18,6 +18,16 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const shipment = await Shipment.findById(req.params.id).populate('supplierId', 'name');
+    if (!shipment) return res.status(404).json({ message: 'Shipment not found' });
+    res.json({ success: true, data: shipment });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 router.post('/', protect, async (req, res) => {
   try {
     const companyId = getCompanyId(req);

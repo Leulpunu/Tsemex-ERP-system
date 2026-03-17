@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Wrench, Plus, Pencil } from 'lucide-react'
-import { createWorkOrder, getWorkOrders, updateWorkOrder } from '../../store/slices/workOrderSlice'
+import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { getWorkOrders } from '../../store/slices/workOrderSlice'
 
 const WorkOrderList = () => {
   const dispatch = useDispatch()
@@ -14,23 +16,9 @@ const WorkOrderList = () => {
     dispatch(getWorkOrders(companyId ? { companyId } : undefined))
   }, [dispatch, currentCompany?._id, user?.role])
 
-  const onCreate = async () => {
-    const title = prompt('Work order title')
-    if (!title) return
-    const type =
-      (prompt('Type (installation/repair/maintenance/inspection/emergency/other)', 'maintenance') || 'maintenance').toLowerCase()
-    const allowed = ['installation', 'repair', 'maintenance', 'inspection', 'emergency', 'other']
-    if (!allowed.includes(type)) return
-    const priority = (prompt('Priority (low/medium/high/urgent)', 'medium') || 'medium').toLowerCase()
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(createWorkOrder({ workOrderData: { title, type, priority }, companyId }))
-  }
-
-  const onEdit = async (wo) => {
-    const status =
-      (prompt('Status (pending/assigned/in_progress/on_hold/completed/cancelled)', wo.status) || wo.status).toLowerCase()
-    await dispatch(updateWorkOrder({ id: wo._id, workOrderData: { status } }))
-  }
+  useEffect(() => {
+    if (isError && message) toast.error(message)
+  }, [isError, message])
 
   return (
     <div className="space-y-6">
@@ -39,14 +27,10 @@ const WorkOrderList = () => {
           <Wrench size={28} className="text-orange-600" />
           <h1 className="text-2xl font-bold text-gray-800">Work Orders</h1>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
-        >
+        <Link className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700" to="/work-orders/new">
           <Plus size={18} />
           New Work Order
-        </button>
+        </Link>
       </div>
 
       {isError && (
@@ -86,13 +70,12 @@ const WorkOrderList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{wo.priority}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{wo.status}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(wo)}
+                    <Link
+                      to={`/work-orders/${wo._id}/edit`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900"
                     >
-                      <Pencil size={16} /> Update Status
-                    </button>
+                      <Pencil size={16} /> Edit
+                    </Link>
                   </td>
                 </tr>
               ))

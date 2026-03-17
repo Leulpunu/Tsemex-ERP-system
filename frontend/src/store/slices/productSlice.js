@@ -42,8 +42,18 @@ export const deleteProduct = createAsyncThunk('products/delete', async (id, thun
   }
 })
 
+export const getProduct = createAsyncThunk('products/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/products/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   products: [],
+  selectedProduct: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -52,7 +62,11 @@ const initialState = {
 const productSlice = createSlice({
   name: 'products',
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedProduct: (state) => {
+      state.selectedProduct = null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getProducts.pending, (state) => {
@@ -105,8 +119,21 @@ const productSlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getProduct.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getProduct.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedProduct = action.payload?.data || null
+      })
+      .addCase(getProduct.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
+export const { clearSelectedProduct } = productSlice.actions
 export default productSlice.reducer
 

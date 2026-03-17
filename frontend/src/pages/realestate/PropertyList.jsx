@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Hotel, Plus, Pencil } from 'lucide-react'
-import { createProperty, getProperties, updateProperty } from '../../store/slices/propertySlice'
+import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { getProperties } from '../../store/slices/propertySlice'
 
 const PropertyList = () => {
   const dispatch = useDispatch()
@@ -14,22 +16,9 @@ const PropertyList = () => {
     dispatch(getProperties(companyId ? { companyId } : undefined))
   }, [dispatch, currentCompany?._id, user?.role])
 
-  const onCreate = async () => {
-    const name = prompt('Property name')
-    if (!name) return
-    const type =
-      (prompt('Type (residential/commercial/industrial/land/hotel/mixed_use)', 'residential') || 'residential').toLowerCase()
-    const city = prompt('City (optional)') || ''
-    const country = prompt('Country (optional)') || ''
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(createProperty({ propertyData: { name, type, address: { city, country } }, companyId }))
-  }
-
-  const onEdit = async (prop) => {
-    const status =
-      (prompt('Status (available/occupied/maintenance/unavailable)', prop.status) || prop.status).toLowerCase()
-    await dispatch(updateProperty({ id: prop._id, propertyData: { status } }))
-  }
+  useEffect(() => {
+    if (isError && message) toast.error(message)
+  }, [isError, message])
 
   return (
     <div className="space-y-6">
@@ -38,14 +27,10 @@ const PropertyList = () => {
           <Hotel size={28} className="text-teal-600" />
           <h1 className="text-2xl font-bold text-gray-800">Properties</h1>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700"
-        >
+        <Link className="flex items-center gap-2 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700" to="/properties/new">
           <Plus size={18} />
           New Property
-        </button>
+        </Link>
       </div>
 
       {isError && (
@@ -85,13 +70,12 @@ const PropertyList = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.status}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(p)}
+                    <Link
+                      to={`/properties/${p._id}/edit`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900"
                     >
-                      <Pencil size={16} /> Update Status
-                    </button>
+                      <Pencil size={16} /> Edit
+                    </Link>
                   </td>
                 </tr>
               ))

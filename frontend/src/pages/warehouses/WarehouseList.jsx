@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Plus, Trash2, Home, Pencil } from 'lucide-react'
-import { createWarehouse, deleteWarehouse, getWarehouses, updateWarehouse } from '../../store/slices/warehouseSlice'
+import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { deleteWarehouse, getWarehouses } from '../../store/slices/warehouseSlice'
 
 const WarehouseList = () => {
   const dispatch = useDispatch()
@@ -14,30 +16,10 @@ const WarehouseList = () => {
     dispatch(getWarehouses(companyId ? { companyId } : undefined))
   }, [dispatch, currentCompany?._id, user?.role])
 
-  const onCreate = async () => {
-    const name = prompt('Warehouse name')
-    if (!name) return
-    const city = prompt('City (optional)') || ''
-    const country = prompt('Country (optional)') || ''
-    const capacityRaw = prompt('Capacity (optional number)') || ''
-    const capacity = capacityRaw ? Number(capacityRaw) : undefined
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(createWarehouse({ warehouseData: { name, address: { city, country }, capacity }, companyId }))
-  }
-
-  const onEdit = async (warehouse) => {
-    const name = prompt('Warehouse name', warehouse.name)
-    if (!name) return
-    const city = prompt('City (optional)', warehouse.address?.city || '') || ''
-    const country = prompt('Country (optional)', warehouse.address?.country || '') || ''
-    const capacityRaw = prompt('Capacity (optional number)', warehouse.capacity ?? '') || ''
-    const capacity = capacityRaw === '' ? undefined : Number(capacityRaw)
-    await dispatch(updateWarehouse({ id: warehouse._id, warehouseData: { name, address: { city, country }, capacity } }))
-  }
-
   const onDelete = async (id) => {
     if (!confirm('Delete this warehouse?')) return
     await dispatch(deleteWarehouse(id))
+    toast.success('Warehouse deleted')
   }
 
   return (
@@ -47,14 +29,10 @@ const WarehouseList = () => {
           <Home size={28} className="text-blue-600" />
           <h1 className="text-2xl font-bold text-gray-800">Warehouses</h1>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
+        <Link className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" to="/warehouses/new">
           <Plus size={18} />
           New Warehouse
-        </button>
+        </Link>
       </div>
 
       {isError && (
@@ -91,13 +69,12 @@ const WarehouseList = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{warehouse.capacity ?? '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(warehouse)}
+                    <Link
+                      to={`/warehouses/${warehouse._id}/edit`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900 mr-4"
                     >
                       <Pencil size={16} /> Edit
-                    </button>
+                    </Link>
                     <button type="button" onClick={() => onDelete(warehouse._id)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={16} />
                     </button>

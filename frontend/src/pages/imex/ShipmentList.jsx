@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Globe, Plus, Pencil } from 'lucide-react'
-import { createShipment, getShipments, updateShipment } from '../../store/slices/shipmentSlice'
+import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { getShipments } from '../../store/slices/shipmentSlice'
 
 const ShipmentList = () => {
   const dispatch = useDispatch()
@@ -14,29 +16,9 @@ const ShipmentList = () => {
     dispatch(getShipments(companyId ? { companyId } : undefined))
   }, [dispatch, currentCompany?._id, user?.role])
 
-  const onCreate = async () => {
-    const type = (prompt('Type (import/export/transit)', 'import') || 'import').toLowerCase()
-    if (!['import', 'export', 'transit'].includes(type)) return
-    const originCountry = prompt('Origin country (optional)') || ''
-    const destinationCountry = prompt('Destination country (optional)') || ''
-    const status = 'pending'
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(
-      createShipment({
-        shipmentData: { type, status, origin: { country: originCountry }, destination: { country: destinationCountry } },
-        companyId,
-      })
-    )
-  }
-
-  const onEdit = async (shipment) => {
-    const status =
-      (prompt(
-        'Status (pending/picked_up/in_transit/customs_clearance/delivered/cancelled)',
-        String(shipment.status || 'pending').trim()
-      ) || shipment.status) + ''
-    await dispatch(updateShipment({ id: shipment._id, shipmentData: { status } }))
-  }
+  useEffect(() => {
+    if (isError && message) toast.error(message)
+  }, [isError, message])
 
   return (
     <div className="space-y-6">
@@ -45,14 +27,10 @@ const ShipmentList = () => {
           <Globe size={28} className="text-blue-600" />
           <h1 className="text-2xl font-bold text-gray-800">Shipments</h1>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
+        <Link className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" to="/shipments/new">
           <Plus size={18} />
           New Shipment
-        </button>
+        </Link>
       </div>
 
       {isError && (
@@ -92,13 +70,12 @@ const ShipmentList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{s.destination?.country || '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{String(s.status || '').trim()}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(s)}
+                    <Link
+                      to={`/shipments/${s._id}/edit`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900"
                     >
-                      <Pencil size={16} /> Update Status
-                    </button>
+                      <Pencil size={16} /> Edit
+                    </Link>
                   </td>
                 </tr>
               ))

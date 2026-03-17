@@ -33,8 +33,18 @@ export const updateProperty = createAsyncThunk('properties/update', async ({ id,
   }
 })
 
+export const getProperty = createAsyncThunk('properties/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/properties/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   properties: [],
+  selectedProperty: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -43,7 +53,11 @@ const initialState = {
 const propertySlice = createSlice({
   name: 'properties',
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedProperty: (state) => {
+      state.selectedProperty = null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getProperties.pending, (state) => {
@@ -83,8 +97,21 @@ const propertySlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getProperty.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getProperty.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedProperty = action.payload?.data || null
+      })
+      .addCase(getProperty.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
+export const { clearSelectedProperty } = propertySlice.actions
 export default propertySlice.reducer
 

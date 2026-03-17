@@ -45,8 +45,18 @@ export const deleteDepartment = createAsyncThunk('departments/delete', async (id
   }
 })
 
+export const getDepartment = createAsyncThunk('departments/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/departments/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   departments: [],
+  selectedDepartment: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -60,6 +70,9 @@ const departmentSlice = createSlice({
       state.isLoading = false
       state.isError = false
       state.message = ''
+    },
+    clearSelectedDepartment: (state) => {
+      state.selectedDepartment = null
     },
   },
   extraReducers: (builder) => {
@@ -119,9 +132,21 @@ const departmentSlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getDepartment.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getDepartment.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedDepartment = action.payload?.data || null
+      })
+      .addCase(getDepartment.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
-export const { resetDepartmentState } = departmentSlice.actions
+export const { resetDepartmentState, clearSelectedDepartment } = departmentSlice.actions
 export default departmentSlice.reducer
 

@@ -42,8 +42,18 @@ export const deleteProject = createAsyncThunk('projects/delete', async (id, thun
   }
 })
 
+export const getProject = createAsyncThunk('projects/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/projects/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   projects: [],
+  selectedProject: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -52,7 +62,11 @@ const initialState = {
 const projectSlice = createSlice({
   name: 'projects',
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedProject: (state) => {
+      state.selectedProject = null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getProjects.pending, (state) => {
@@ -105,8 +119,21 @@ const projectSlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getProject.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getProject.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedProject = action.payload?.data || null
+      })
+      .addCase(getProject.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
+export const { clearSelectedProject } = projectSlice.actions
 export default projectSlice.reducer
 

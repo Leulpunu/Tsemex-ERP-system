@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Plus, Trash2, Pencil, Package, Search } from 'lucide-react'
-import { createProduct, deleteProduct, getProducts, updateProduct } from '../../store/slices/productSlice'
+import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { deleteProduct, getProducts } from '../../store/slices/productSlice'
 
 const ProductList = () => {
   const dispatch = useDispatch()
@@ -24,28 +26,14 @@ const ProductList = () => {
     })
   }, [products, q])
 
-  const onCreate = async () => {
-    const name = prompt('Product name')
-    if (!name) return
-    const sku = prompt('SKU (required, unique per company)')
-    if (!sku) return
-    const category = prompt('Category (optional)') || ''
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(createProduct({ productData: { name, sku, category }, companyId }))
-  }
-
-  const onEdit = async (product) => {
-    const name = prompt('Product name', product.name)
-    if (!name) return
-    const sku = prompt('SKU (required)', product.sku)
-    if (!sku) return
-    const category = prompt('Category (optional)', product.category || '') || ''
-    await dispatch(updateProduct({ id: product._id, productData: { name, sku, category } }))
-  }
+  useEffect(() => {
+    if (isError && message) toast.error(message)
+  }, [isError, message])
 
   const onDelete = async (id) => {
     if (!confirm('Delete this product?')) return
     await dispatch(deleteProduct(id))
+    toast.success('Product deleted')
   }
 
   return (
@@ -66,14 +54,10 @@ const ProductList = () => {
               className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent w-64"
             />
           </div>
-          <button
-            type="button"
-            onClick={onCreate}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-          >
+          <Link className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700" to="/products/new">
             <Plus size={18} />
             New Product
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -99,9 +83,9 @@ const ProductList = () => {
               <tr>
                 <td colSpan="5" className="px-6 py-12 text-center text-gray-500">
                   No products found.{' '}
-                  <button type="button" onClick={onCreate} className="text-indigo-600 hover:underline">
+                  <Link to="/products/new" className="text-indigo-600 hover:underline">
                     Create one now
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ) : (
@@ -112,13 +96,12 @@ const ProductList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.category || '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.currentStock ?? 0}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(p)}
+                    <Link
+                      to={`/products/${p._id}/edit`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900 mr-4"
                     >
                       <Pencil size={16} /> Edit
-                    </button>
+                    </Link>
                     <button type="button" onClick={() => onDelete(p._id)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={16} />
                     </button>

@@ -19,6 +19,16 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const workOrder = await WorkOrder.findById(req.params.id).populate('assignedTo', 'name');
+    if (!workOrder) return res.status(404).json({ message: 'Work order not found' });
+    res.json({ success: true, data: workOrder });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 router.post('/', protect, async (req, res) => {
   try {
     const companyId = getCompanyId(req);

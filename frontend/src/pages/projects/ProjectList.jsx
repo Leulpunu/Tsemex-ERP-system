@@ -1,7 +1,9 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { HardHat, Plus, Trash2, Pencil } from 'lucide-react'
-import { createProject, deleteProject, getProjects, updateProject } from '../../store/slices/projectSlice'
+import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { deleteProject, getProjects } from '../../store/slices/projectSlice'
 
 const ProjectList = () => {
   const dispatch = useDispatch()
@@ -14,24 +16,14 @@ const ProjectList = () => {
     dispatch(getProjects(companyId ? { companyId } : undefined))
   }, [dispatch, currentCompany?._id, user?.role])
 
-  const onCreate = async () => {
-    const name = prompt('Project name')
-    if (!name) return
-    const startDate = prompt('Start date (YYYY-MM-DD)', new Date().toISOString().slice(0, 10))
-    if (!startDate) return
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(createProject({ projectData: { name, startDate: new Date(startDate).toISOString() }, companyId }))
-  }
-
-  const onEdit = async (project) => {
-    const name = prompt('Project name', project.name)
-    if (!name) return
-    await dispatch(updateProject({ id: project._id, projectData: { name } }))
-  }
+  useEffect(() => {
+    if (isError && message) toast.error(message)
+  }, [isError, message])
 
   const onDelete = async (id) => {
     if (!confirm('Delete this project?')) return
     await dispatch(deleteProject(id))
+    toast.success('Project deleted')
   }
 
   return (
@@ -41,14 +33,10 @@ const ProjectList = () => {
           <HardHat size={28} className="text-green-600" />
           <h1 className="text-2xl font-bold text-gray-800">Projects</h1>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-        >
+        <Link className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" to="/projects/new">
           <Plus size={18} />
           New Project
-        </button>
+        </Link>
       </div>
 
       {isError && (
@@ -84,13 +72,12 @@ const ProjectList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.projectCode || '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{p.status}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(p)}
+                    <Link
+                      to={`/projects/${p._id}/edit`}
                       className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900 mr-4"
                     >
                       <Pencil size={16} /> Edit
-                    </button>
+                    </Link>
                     <button type="button" onClick={() => onDelete(p._id)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={16} />
                     </button>

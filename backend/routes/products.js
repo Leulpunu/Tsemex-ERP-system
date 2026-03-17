@@ -22,6 +22,17 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+router.get('/:id', protect, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    res.json({ success: true, data: product });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 router.post('/', protect, authorize('super_admin', 'company_admin', 'inventory_manager'), async (req, res) => {
   try {
     const companyId = getCompanyId(req);
