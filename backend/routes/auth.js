@@ -6,12 +6,16 @@ const User = require('../models/User');
 const Company = require('../models/Company');
 const { protect } = require('../middleware/auth');
 
-// Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE
+// Generate Tokens
+const generateTokens = (id) => {
+  const accessToken = jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: '15m'
   });
+  return { accessToken };
 };
+
+// MFA utils
+const { generateMFASecret, generateQRCode } = require('../utils/mfa');
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -50,8 +54,16 @@ router.post('/register', [
       password,
       phone,
       companyId,
-      role: role || 'employee'
+      role: role || 'employee',
+      departmentId: req.body.departmentId,
+      rank: req.body.rank
     });
+
+    const { otpauth_url } = generateMFASecret();
+    user.mfaSecret = otpauth_url;
+    await user.save();
+
+    const qrCode = await generateQRCode(otpauth_url);
 
     res.status(201).json({
       success: true,
@@ -60,9 +72,11 @@ router.post('/register', [
         name: user.name,
         email: user.email,
         role: user.role,
-        companyId: user.companyId
+        companyId: user.companyId,
+        mfaRequired: true,
+        mfaQR: qrCode
       },
-      token: generateToken(user._id)
+      token: generateTokens(user._id).accessToken
     });
   } catch (error) {
     console.error(error);
@@ -106,12 +120,29 @@ router.post('/login', [
     user.lastLogin = Date.now();
     await user.save({ validateBeforeSave: false });
 
-    // Get company details if user has one
+    // MFA required if enabled
+    if (user.mfaSecret) {
+      const { otpauth_url } = generateMFASecret();
+      const qrCode = await generateQRCode(otpauth_url);
+      return res.json({
+        success: true,
+        mfaRequired: true,
+        data: {
+          _id: user._id,
+          name: user.name,
+          email: user.email
+        },
+        mfaQR: qrCode
+      });
+    }
+
+    // Get company details
     let company = null;
     if (user.companyId) {
       company = await Company.findById(user.companyId);
     }
 
+    const tokens = generateTokens(user._id);
     res.json({
       success: true,
       data: {
@@ -122,9 +153,11 @@ router.post('/login', [
         role: user.role,
         companyId: user.companyId,
         company: company,
-        lastLogin: user.lastLogin
+        lastLogin: user.lastLogin,
+        mfaEnabled: !!user.mfaSecret
       },
-      token: generateToken(user._id)
+      token: tokens.accessToken,
+      refreshToken: tokens.refreshToken
     });
   } catch (error) {
     console.error(error);

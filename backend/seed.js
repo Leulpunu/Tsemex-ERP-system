@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const User = require('./models/User');
 const Company = require('./models/Company');
+const Role = require('./models/Role');
 
 connectDB();
 
@@ -45,11 +46,23 @@ const seedData = async () => {
     ]);
 
     // Create Super Admin
+    // Create default super admin role first
+    const superRole = await Role.create({
+      companyId: companies[0]._id,
+      name: 'Super Admin',
+      department: 'IT',
+      level: 1,
+      permissions: {},
+      dataScope: 'enterprise'
+    });
+
     const superAdmin = await User.create({
       name: 'Tsemex Super Admin',
       email: 'admin@tsemex.com',
       password: 'admin123',
-      role: 'super_admin'
+      role: 'super_admin',
+      companyId: companies[0]._id,
+      roleId: superRole._id
     });
 
     console.log('✅ Seed complete!');

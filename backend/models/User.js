@@ -30,6 +30,31 @@ const userSchema = new mongoose.Schema({
     enum: ['super_admin', 'company_admin', 'accountant', 'hr_manager', 'project_manager', 'inventory_manager', 'employee'],
     default: 'employee'
   },
+  departmentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Department'
+  },
+  roleId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Role',
+    required: true
+  },
+  rank: {
+    type: Number,
+    min: 1,
+    max: 4
+  },
+  mfaSecret: {
+    type: String
+  },
+  permissions: {
+    type: Object,
+    default: {}
+  },
+  sessionActive: {
+    type: Boolean,
+    default: true
+  },
   companyId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Company'

@@ -12,6 +12,11 @@ const departmentSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'Name cannot exceed 100 characters']
   },
+  type: {
+    type: String,
+    enum: ['FINANCE', 'HR', 'SALES', 'OPERATIONS', 'CUSTOMER_SERVICE', 'PROJECT', 'IT', 'LEGAL', 'RND', 'ADMIN'],
+    required: true
+  },
   code: {
     type: String,
     trim: true,
