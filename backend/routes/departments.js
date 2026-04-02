@@ -32,7 +32,8 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 router.post('/', protect, authorize('super_admin', 'company_admin', 'hr_manager'), [
-  body('name').notEmpty().withMessage('Department name is required')
+  body('name').notEmpty().withMessage('Department name is required'),
+  body('type').isIn(['FINANCE', 'HR', 'SALES', 'OPERATIONS', 'CUSTOMER_SERVICE', 'PROJECT', 'IT', 'LEGAL', 'RND', 'ADMIN']).withMessage('Valid department type required')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -48,6 +49,7 @@ router.post('/', protect, authorize('super_admin', 'company_admin', 'hr_manager'
     res.status(500).json({ message: 'Server Error' });
   }
 });
+
 
 router.put('/:id', protect, async (req, res) => {
   try {

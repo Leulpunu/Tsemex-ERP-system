@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Invoice = require('../models/Invoice');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, hasModulePermission } = require('../middleware/auth');
 
 const getCompanyId = (req) => req.user.role === 'super_admin' ? req.query.companyId : req.user.companyId;
 
@@ -36,6 +36,9 @@ router.get('/:id', protect, async (req, res) => {
 
 router.post('/', protect, authorize('super_admin', 'company_admin', 'accountant'), async (req, res) => {
   try {
+    if (!hasModulePermission(req.user, 'finance', 'receivable', 'c')) {
+      return res.status(403).json({ message: 'Not allowed to create invoices' });
+    }
     const companyId = getCompanyId(req);
     const invoiceData = { ...req.body, companyId };
     const invoice = await Invoice.create(invoiceData);
@@ -48,6 +51,9 @@ router.post('/', protect, authorize('super_admin', 'company_admin', 'accountant'
 
 router.put('/:id', protect, authorize('super_admin', 'company_admin', 'accountant'), async (req, res) => {
   try {
+    if (!hasModulePermission(req.user, 'finance', 'receivable', 'u')) {
+      return res.status(403).json({ message: 'Not allowed to update invoices' });
+    }
     let invoice = await Invoice.findById(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
     invoice = await Invoice.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
@@ -60,6 +66,9 @@ router.put('/:id', protect, authorize('super_admin', 'company_admin', 'accountan
 
 router.delete('/:id', protect, authorize('super_admin', 'company_admin'), async (req, res) => {
   try {
+    if (!hasModulePermission(req.user, 'finance', 'receivable', 'd')) {
+      return res.status(403).json({ message: 'Not allowed to delete invoices' });
+    }
     const invoice = await Invoice.findById(req.params.id);
     if (!invoice) return res.status(404).json({ message: 'Invoice not found' });
     await invoice.deleteOne();

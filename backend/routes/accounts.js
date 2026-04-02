@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Account = require('../models/Account');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, hasModulePermission } = require('../middleware/auth');
 
 const getCompanyId = (req) => req.user.role === 'super_admin' ? req.query.companyId : req.user.companyId;
 
@@ -34,6 +34,9 @@ router.post('/', protect, authorize('super_admin', 'company_admin', 'accountant'
   body('type').isIn(['asset', 'liability', 'income', 'expense', 'equity']).withMessage('Valid account type is required')
 ], async (req, res) => {
   try {
+    if (!hasModulePermission(req.user, 'finance', 'ledger', 'c')) {
+      return res.status(403).json({ message: 'Not allowed to create accounts' });
+    }
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
     const companyId = getCompanyId(req);
@@ -47,6 +50,9 @@ router.post('/', protect, authorize('super_admin', 'company_admin', 'accountant'
 
 router.put('/:id', protect, authorize('super_admin', 'company_admin', 'accountant'), async (req, res) => {
   try {
+    if (!hasModulePermission(req.user, 'finance', 'ledger', 'u')) {
+      return res.status(403).json({ message: 'Not allowed to update accounts' });
+    }
     let account = await Account.findById(req.params.id);
     if (!account) return res.status(404).json({ message: 'Account not found' });
     account = await Account.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });

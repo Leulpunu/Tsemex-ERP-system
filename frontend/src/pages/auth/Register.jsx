@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { register, reset } from '../../store/slices/authSlice'
+import toast from 'react-hot-toast'
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -21,7 +22,7 @@ const Register = () => {
 
   useEffect(() => {
     if (isError) {
-      alert(message)
+      toast.error(message)
     }
     if (user || isSuccess) {
       navigate('/')
@@ -39,7 +40,7 @@ const Register = () => {
   const onSubmit = (e) => {
     e.preventDefault()
     if (password !== confirmPassword) {
-      alert('Passwords do not match')
+      toast.error('Passwords do not match')
       return
     }
     dispatch(register(formData))

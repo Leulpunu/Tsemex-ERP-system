@@ -10,7 +10,7 @@ const normalizeAuthResponse = (payload) => {
 }
 
 const initialState = {
-  user: storedUser ? storedUser : null,
+  user: null, // Always start with no user (fresh login)
   isLoading: false,
   isError: false,
   isSuccess: false,

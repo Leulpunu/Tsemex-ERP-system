@@ -11,7 +11,9 @@ import EmployeeList from './pages/hr/EmployeeList'
 import EmployeeForm from './pages/hr/EmployeeForm'
 import DepartmentList from './pages/hr/DepartmentList'
 import DepartmentForm from './pages/hr/DepartmentForm'
+import KPIDashboard from './pages/hr/KPIDashboard'
 import InvoiceList from './pages/finance/InvoiceList'
+import InvoiceForm from './pages/finance/InvoiceForm'
 import ProductList from './pages/inventory/ProductList'
 import ProductForm from './pages/inventory/ProductForm'
 import ProjectList from './pages/projects/ProjectList'
@@ -28,6 +30,10 @@ import SupplierList from './pages/suppliers/SupplierList'
 import SupplierForm from './pages/suppliers/SupplierForm'
 import WarehouseList from './pages/warehouses/WarehouseList'
 import WarehouseForm from './pages/warehouses/WarehouseForm'
+import ChatLayout from './pages/Chat/ChatLayout'
+import DocumentList from './pages/documents/DocumentList'
+import StockAlerts from './pages/inventory/StockAlerts'
+
 
 function App() {
   const { user } = useSelector((state) => state.auth)
@@ -50,7 +56,10 @@ function App() {
         <Route path="departments" element={<DepartmentList />} />
         <Route path="departments/new" element={<DepartmentForm />} />
         <Route path="departments/:id/edit" element={<DepartmentForm />} />
+        <Route path="kpis" element={<KPIDashboard />} />
         <Route path="invoices" element={<InvoiceList />} />
+        <Route path="invoices/new" element={<InvoiceForm />} />
+        <Route path="invoices/:id/edit" element={<InvoiceForm />} />
         <Route path="products" element={<ProductList />} />
         <Route path="products/new" element={<ProductForm />} />
         <Route path="products/:id/edit" element={<ProductForm />} />
@@ -75,9 +84,18 @@ function App() {
         <Route path="warehouses" element={<WarehouseList />} />
         <Route path="warehouses/new" element={<WarehouseForm />} />
         <Route path="warehouses/:id/edit" element={<WarehouseForm />} />
+        <Route path="inventory" element={<ProductList />} />
+        <Route path="inventory/alerts" element={<StockAlerts />} />
+        <Route path="inventory/products" element={<ProductList />} />
+        <Route path="inventory/products/new" element={<ProductForm />} />
+        <Route path="inventory/products/:id/edit" element={<ProductForm />} />
+        <Route path="chat" element={<ChatLayout />} />
+        <Route path="documents" element={<DocumentList />} />
       </Route>
     </Routes>
   )
-}
+ }
 
-export default App
+ export default App
+
+

@@ -1,6 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
 import companyReducer from './slices/companySlice'
+import kpiReducer from './slices/kpiSlice'
+import { chatApi } from './slices/chatSlice'
+
 import employeeReducer from './slices/employeeSlice'
 import departmentReducer from './slices/departmentSlice'
 import customerReducer from './slices/customerSlice'
@@ -12,12 +15,18 @@ import projectReducer from './slices/projectSlice'
 import workOrderReducer from './slices/workOrderSlice'
 import shipmentReducer from './slices/shipmentSlice'
 import propertyReducer from './slices/propertySlice'
+import documentReducer from './slices/documentSlice'
+import { stockAlertApi } from './slices/stockAlertSlice'
+
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     company: companyReducer,
+    kpis: kpiReducer,
+    documents: documentReducer,
     employees: employeeReducer,
+
     departments: departmentReducer,
     customers: customerReducer,
     suppliers: supplierReducer,
@@ -28,5 +37,12 @@ export const store = configureStore({
     workOrders: workOrderReducer,
     shipments: shipmentReducer,
     properties: propertyReducer,
+    [chatApi.reducerPath]: chatApi.reducer,
+    [stockAlertApi.reducerPath]: stockAlertApi.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(chatApi.middleware, stockAlertApi.middleware),
 })
+
+
+

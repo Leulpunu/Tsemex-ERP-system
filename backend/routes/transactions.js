@@ -3,7 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const Transaction = require('../models/Transaction');
 const Account = require('../models/Account');
-const { protect, authorize } = require('../middleware/auth');
+const { protect, authorize, hasModulePermission } = require('../middleware/auth');
 
 const getCompanyId = (req) => req.user.role === 'super_admin' ? req.query.companyId : req.user.companyId;
 
@@ -38,6 +38,10 @@ router.post('/', protect, authorize('super_admin', 'company_admin', 'accountant'
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
     const companyId = getCompanyId(req);
+
+    if (!hasModulePermission(req.user, 'finance', 'treasury', 'c')) {
+      return res.status(403).json({ message: 'Not allowed to create transactions' });
+    }
     const { accountId, type, amount, description, reference, date } = req.body;
 
     const transaction = await Transaction.create({

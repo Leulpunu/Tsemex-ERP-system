@@ -59,8 +59,12 @@ app.use('/api/hotel/rooms', require('./routes/hotelRooms'));
 app.use('/api/hotel/bookings', require('./routes/hotelBookings'));
 app.use('/api/hotel/guests', require('./routes/hotelGuests'));
 app.use('/api/customers', require('./routes/customers'));
+app.use('/api/chat', require('./routes/chat'));
+app.use('/api/ai', require('./routes/ai'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/documents', require('./routes/documents'));
+app.use('/api/stock-alerts', require('./routes/stockAlerts'));
 
 // Health check & Swagger
 app.get('/api/health', (req, res) => {
@@ -69,13 +73,81 @@ app.get('/api/health', (req, res) => {
 
 // TODO: Add Swagger docs later
 
+// Socket.io setup
+const { Server } = require("socket.io");
+const http = require('http');
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : 'http://localhost:5173',
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Socket auth middleware
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token || socket.handshake.headers['authorization']?.split(' ')[1];
+  if (!token) {
+    socket.user = { id: 'anonymous', role: 'guest' };
+    return next();
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.user = decoded;
+    next();
+  } catch (err) {
+    socket.user = { id: 'anonymous', role: 'guest' };
+    next();
+  }
+});
+
+// Socket connection events
+io.on('connection', (socket) => {
+  console.log(`User ${socket.user.id} connected`);
+  
+  // Join user rooms
+  socket.join(`user_${socket.user.id}`);
+  
+  socket.on('joinRoom', (roomId) => {
+    socket.join(`room_${roomId}`);
+  });
+
+  socket.on('sendMessage', async (data) => {
+    try {
+      const message = new Message({
+        roomId: data.roomId,
+        sender: socket.user.id,
+        content: data.content
+      });
+      await message.save();
+      
+      // Update room lastMessage
+      await ChatRoom.findByIdAndUpdate(data.roomId, { 
+        lastMessage: message._id 
+      });
+
+      // Broadcast to room
+      io.to(`room_${data.roomId}`).emit('newMessage', message);
+      
+    } catch (err) {
+      socket.emit('error', 'Failed to send message');
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log(`User ${socket.user.id} disconnected`);
+  });
+});
+
 // Error Handler
 app.use(require('./middleware/errorHandler'));
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, () => {
+  console.log(`Server with Socket.io running on port ${PORT}`);
 });
 
 // Graceful shutdown

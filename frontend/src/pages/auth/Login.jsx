@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { login, reset } from '../../store/slices/authSlice'
+import toast from 'react-hot-toast'
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -19,7 +20,7 @@ const Login = () => {
 
   useEffect(() => {
     if (isError) {
-      alert(message)
+      toast.error(message)
     }
     if (user || isSuccess) {
       navigate('/')

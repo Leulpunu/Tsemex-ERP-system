@@ -6,6 +6,21 @@ const Branch = require('../models/Branch');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
 
+// @route   GET /api/companies/public
+// @desc    Get all companies (public access for initial load)
+// @access  Public
+router.get('/public', async (req, res) => {
+  try {
+    const companies = await Company.find({})
+      .select('name type email phone address')
+      .sort({ createdAt: -1 });
+    res.json({ success: true, count: companies.length, data: companies });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 // @route   GET /api/companies
 // @desc    Get all companies
 // @access  Private (Super Admin only)

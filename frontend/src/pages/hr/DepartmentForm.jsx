@@ -45,11 +45,16 @@ const DepartmentForm = () => {
   const onSubmit = async (data) => {
     try {
       if (isEdit) {
-        await dispatch(updateDepartment({ id, departmentData: { name: data.name } })).unwrap()
+        await dispatch(updateDepartment({ id, departmentData: { name: data.name, type: data.type } })).unwrap()
         toast.success('Department updated')
       } else {
         const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-        await dispatch(createDepartment({ departmentData: { name: data.name }, companyId })).unwrap()
+        await dispatch(
+          createDepartment({
+            departmentData: { name: data.name, type: data.type },
+            companyId,
+          })
+        ).unwrap()
         toast.success('Department created')
       }
       navigate('/departments')
@@ -70,6 +75,28 @@ const DepartmentForm = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
           {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name.message}</p>}
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2">Type</label>
+          <select
+            {...register('type', { required: 'Type is required' })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+            defaultValue="OTHER"
+          >
+            <option value="">Select type</option>
+            <option value="FINANCE">Finance</option>
+            <option value="HR">Human Resources</option>
+            <option value="SALES">Sales & Marketing</option>
+            <option value="OPERATIONS">Operations</option>
+            <option value="CUSTOMER_SERVICE">Customer Service</option>
+            <option value="PROJECT">Projects</option>
+            <option value="IT">IT</option>
+            <option value="LEGAL">Legal & Compliance</option>
+            <option value="RND">R&D</option>
+            <option value="ADMIN">Administration</option>
+          </select>
+          {errors.type && <p className="text-sm text-red-600 mt-1">{errors.type.message}</p>}
         </div>
 
         <div className="flex gap-3">

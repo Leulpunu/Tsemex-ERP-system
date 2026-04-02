@@ -33,8 +33,27 @@ export const deleteInvoice = createAsyncThunk('invoices/delete', async (id, thun
   }
 })
 
+export const getInvoice = createAsyncThunk('invoices/getOne', async (id, thunkAPI) => {
+  try {
+    const response = await api.get(`/invoices/${id}`)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
+export const updateInvoice = createAsyncThunk('invoices/update', async ({ id, invoiceData }, thunkAPI) => {
+  try {
+    const response = await api.put(`/invoices/${id}`, invoiceData)
+    return response.data
+  } catch (error) {
+    return thunkAPI.rejectWithValue(extractMessage(error))
+  }
+})
+
 const initialState = {
   invoices: [],
+  selectedInvoice: null,
   isLoading: false,
   isError: false,
   message: '',
@@ -43,7 +62,11 @@ const initialState = {
 const invoiceSlice = createSlice({
   name: 'invoices',
   initialState,
-  reducers: {},
+  reducers: {
+    clearSelectedInvoice: (state) => {
+      state.selectedInvoice = null
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(getInvoices.pending, (state) => {
@@ -83,8 +106,37 @@ const invoiceSlice = createSlice({
         state.isError = true
         state.message = action.payload
       })
+      .addCase(getInvoice.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(getInvoice.fulfilled, (state, action) => {
+        state.isLoading = false
+        state.selectedInvoice = action.payload?.data || null
+      })
+      .addCase(getInvoice.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
+      .addCase(updateInvoice.pending, (state) => {
+        state.isLoading = true
+      })
+      .addCase(updateInvoice.fulfilled, (state, action) => {
+        state.isLoading = false
+        const updated = action.payload?.data
+        if (updated?._id) {
+          state.invoices = state.invoices.map((inv) => (inv._id === updated._id ? updated : inv))
+          state.selectedInvoice = updated
+        }
+      })
+      .addCase(updateInvoice.rejected, (state, action) => {
+        state.isLoading = false
+        state.isError = true
+        state.message = action.payload
+      })
   },
 })
 
+export const { clearSelectedInvoice } = invoiceSlice.actions
 export default invoiceSlice.reducer
 

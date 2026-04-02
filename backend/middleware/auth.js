@@ -3,13 +3,38 @@ const User = require('../models/User');
 const Role = require('../models/Role');
 const { verifyMFAToken } = require('../utils/mfa');
 
+// Generic permission helper based on Role.permissions template
+// moduleKey: 'finance', 'hr', 'sales', etc.
+// areaKey:   e.g. 'ledger', 'payable', 'receivable', 'reporting'
+// actionKey: one of 'c','r','u','d','a' (create, read, update, delete, approve)
+const hasModulePermission = (user, moduleKey, areaKey, actionKey) => {
+  if (!user) return false;
+
+  // Super admin shortcut
+  if (user.role === 'super_admin') return true;
+
+  const perms =
+    (user.roleId && user.roleId.permissions) ||
+    user.permissions || // fallback if permissions also stored on user
+    {};
+
+  const modulePerm = perms[moduleKey];
+  if (!modulePerm) return false;
+
+  const areaPerm = modulePerm[areaKey];
+  if (!areaPerm) return false;
+
+  if (typeof areaPerm[actionKey] !== 'boolean') return false;
+  return areaPerm[actionKey] === true;
+};
+
 const protect = async (req, res, next) => {
   let token;
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET, { expiresIn: '15m' });
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.user = await User.findById(decoded.id).select('-password').populate('roleId', 'permissions dataScope approvalLimit');
 
       if (!req.user) {
@@ -79,5 +104,5 @@ const companyAccess = (req, res, next) => {
   next();
 };
 
-module.exports = { protect, authorize, companyAccess };
+module.exports = { protect, authorize, companyAccess, hasModulePermission };
 

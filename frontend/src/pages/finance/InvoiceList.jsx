@@ -1,66 +1,19 @@
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { FileText, Plus, Trash2 } from 'lucide-react'
-import { createInvoice, deleteInvoice, getInvoices } from '../../store/slices/invoiceSlice'
+import { FileText, Plus, Trash2, Pencil } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { deleteInvoice, getInvoices } from '../../store/slices/invoiceSlice'
 
 const InvoiceList = () => {
   const dispatch = useDispatch()
   const { invoices, isLoading, isError, message } = useSelector((state) => state.invoices)
   const { currentCompany } = useSelector((state) => state.company)
   const { user } = useSelector((state) => state.auth)
-  const { customers } = useSelector((state) => state.customers)
 
   useEffect(() => {
     const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
     dispatch(getInvoices(companyId ? { companyId } : undefined))
   }, [dispatch, currentCompany?._id, user?.role])
-
-  const onCreate = async () => {
-    // Minimal invoice creation (1 line item) to make the module functional.
-    const invoiceType = (prompt('Invoice type: sale or purchase', 'sale') || 'sale').toLowerCase()
-    if (invoiceType !== 'sale' && invoiceType !== 'purchase') return
-
-    let customerId
-    let supplierId
-    if (invoiceType === 'sale') {
-      const customerName = prompt('Customer name (optional). If you already have customers, type exact name to link.') || ''
-      const customer = customers.find((c) => c.name === customerName)
-      customerId = customer?._id
-    } else {
-      supplierId = undefined
-    }
-
-    const desc = prompt('Item description', 'Service') || 'Service'
-    const qty = Number(prompt('Quantity', '1') || '1')
-    const unitPrice = Number(prompt('Unit price', '0') || '0')
-    if (!Number.isFinite(qty) || qty <= 0) return
-    if (!Number.isFinite(unitPrice) || unitPrice < 0) return
-
-    const subtotal = qty * unitPrice
-    const taxTotal = 0
-    const total = subtotal + taxTotal
-    const dueDate = prompt('Due date (YYYY-MM-DD)', new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10))
-    if (!dueDate) return
-
-    const invoiceData = {
-      invoiceType,
-      customerId,
-      supplierId,
-      items: [{ description: desc, quantity: qty, unitPrice, taxRate: 0, taxAmount: 0, total }],
-      subtotal,
-      taxTotal,
-      discount: 0,
-      total,
-      paidAmount: 0,
-      balanceDue: total,
-      status: 'draft',
-      issueDate: new Date().toISOString(),
-      dueDate: new Date(dueDate).toISOString(),
-    }
-
-    const companyId = user?.role === 'super_admin' ? currentCompany?._id : undefined
-    await dispatch(createInvoice({ invoiceData, companyId }))
-  }
 
   const onDelete = async (id) => {
     if (!confirm('Delete this invoice?')) return
@@ -74,14 +27,13 @@ const InvoiceList = () => {
           <FileText size={28} className="text-purple-600" />
           <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
         </div>
-        <button
-          type="button"
-          onClick={onCreate}
-          className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
-        >
+          <Link
+            to="/invoices/new"
+            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700"
+          >
           <Plus size={18} />
           New Invoice
-        </button>
+          </Link>
       </div>
 
       {isError && (
@@ -121,6 +73,12 @@ const InvoiceList = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{inv.total}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{inv.status}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <Link
+                      to={`/invoices/${inv._id}/edit`}
+                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-900 mr-4"
+                    >
+                      <Pencil size={16} /> Edit
+                    </Link>
                     <button type="button" onClick={() => onDelete(inv._id)} className="text-red-600 hover:text-red-900">
                       <Trash2 size={16} />
                     </button>

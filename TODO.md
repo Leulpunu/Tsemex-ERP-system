@@ -1,58 +1,16 @@
-# Tsemex ERP RBAC Integration TODO
+# KPI Dashboard Fix TODO
 
-## Plan Steps:
+## Steps from approved plan
 
-1. ✅ Create `docs/rbac-security-architecture.md` with full hierarchy, permissions matrix from prompt, tailored to project modules.
+- [x] 1. Add kpiReducer to frontend/src/store/index.js
+- [x] 2. Add /kpis route + import to frontend/src/App.jsx
+- [x] 3. Fix useSelector in frontend/src/pages/hr/KPIDashboard.jsx for departments from state.departments
+- [x] 4. Execute backend seed data (seed-complete.js) - basic auth/company seeded (admin@tsemex.com/admin123)
+- [ ] 5. Create departments via app for KPI data
+- [x] 6. Verify KPI page loads (functional, shows 0 KPIs initially)
 
-2. ✅ Create `backend/models/Role.js` model for detailed RBAC.
+**Notes:** 
+- Login, /companies, /departments/new → add data.
+- MongoDB URI note for seed fixed by backend running.
+- Page no longer blank/white! [KPI complete](http://localhost:5173/kpis)
 
-3. ✅ Update models: `User.js` (add dept/rank/MFA/permissions), `Employee.js` (sync role), `Department.js` (add dept type enum).
-
-4. ✅ Install MFA deps: speakeasy, qrcode, otplib.
-
-5. Enhance `backend/middleware/auth.js`: granular `authorize(module, action)`, MFA verification, 15min sessions w/refresh.
-
-4. Install MFA deps: `cd backend && npm i speakeasy qrcode otplib`.
-
-5. Enhance `backend/middleware/auth.js`: granular `authorize(module, action)`, MFA verification, 15min sessions w/refresh.
-
-6. Update `backend/routes/auth.js`: MFA setup/verify in login flow.
-
-7. Refactor routes: Replace hardcoded authorize() with granular; add maker-checker fields to models like Invoice.
-
-8. Frontend utils: `frontend/src/utils/permissions.js`; update `authSlice.js` to fetch perms.
-
-9. Frontend guards: Update `App.jsx`, `MainLayout.jsx` for role/perm-based routing/UI.
-
-10. Seeding: Update `backend/seed.js` with all roles; create migration script.
-
-11. Testing: Add tests, verify MFA/session/denials; audit logs.
-
-12. Completion: Update all routes iteratively, docs.
-
-**Progress: 5/12**
-
-6. ✅ Update `backend/routes/auth.js`: MFA setup/verify in login flow.
-
-7. Refactor routes: Replace hardcoded authorize() with granular; add maker-checker fields to models like Invoice.
-
-
-4. Install MFA deps: `cd backend && npm i speakeasy qrcode otplib`.
-
-5. Enhance `backend/middleware/auth.js`: granular `authorize(module, action)`, MFA verification, 15min sessions w/refresh.
-
-6. Update `backend/routes/auth.js`: MFA setup/verify in login flow.
-
-7. Refactor routes: Replace hardcoded authorize() with granular; add maker-checker fields to models like Invoice.
-
-8. Frontend utils: `frontend/src/utils/permissions.js`; update `authSlice.js` to fetch perms.
-
-9. Frontend guards: Update `App.jsx`, `MainLayout.jsx` for role/perm-based routing/UI.
-
-10. Seeding: Update `backend/seed.js` with all roles; create migration script.
-
-11. Testing: Add tests, verify MFA/session/denials; audit logs.
-
-12. Completion: Update all routes iteratively, docs.
-
-**Progress: 0/12**
