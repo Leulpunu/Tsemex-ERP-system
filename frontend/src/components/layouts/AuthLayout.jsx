@@ -5,7 +5,7 @@ const AuthLayout = () => {
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" 
-      style={{ backgroundImage: "url('/login-bg.jpg')" }}
+style={{ backgroundImage: "linear-gradient(135deg, #ebecf4 0%, #dfdae4 100%)" }}
     >
       <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl w-full max-w-md p-8 relative z-10 border border-white/30">
         <div className="text-center mb-8">

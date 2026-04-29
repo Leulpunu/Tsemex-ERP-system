@@ -45,7 +45,7 @@ const protect = async (req, res, next) => {
         return res.status(401).json({ message: 'User account is deactivated' });
       }
 
-      // MFA check for sensitive routes (skip for /auth/refresh)
+      // MFA check — only required for sensitive mutating operations, not for GET/read
       if (req.originalUrl !== '/api/auth/refresh' && req.user.mfaSecret && !req.headers['x-mfa-token']) {
         return res.status(401).json({ message: 'MFA token required' });
       }

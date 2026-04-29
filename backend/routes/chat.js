@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const ChatRoom = require('../models/ChatRoom');
 const Message = require('../models/Message');
 const { protect } = require('../middleware/auth');
@@ -7,7 +8,7 @@ const { protect } = require('../middleware/auth');
 // @route   GET /api/chat/rooms
 // @desc    Get user's chat rooms  
 // @access  Private
-router.get('/rooms', async (req, res) => { // Public list, auth optional
+router.get('/rooms', protect, async (req, res) => {
   try {
     const rooms = await ChatRoom.find({ 
       participants: req.user._id,
@@ -139,6 +140,50 @@ router.get('/rooms/:roomId/messages', protect, async (req, res) => {
       hasMore: messages.length === limit,
       data: messages.reverse() // Chronological order
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// @route   POST /api/chat/rooms/:roomId/messages
+// @desc    Send a message to room
+// @access  Private
+router.post('/rooms/:roomId/messages', protect, async (req, res) => {
+  try {
+    const { content } = req.body;
+    if (!content || !String(content).trim()) {
+      return res.status(400).json({ message: 'Message content is required' });
+    }
+
+    const room = await ChatRoom.findOne({
+      _id: req.params.roomId,
+      participants: req.user._id
+    });
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+
+    const message = await Message.create({
+      roomId: room._id,
+      sender: req.user._id,
+      content: String(content).trim()
+    });
+
+    room.lastMessage = message._id;
+    // Increase unread count for all participants except sender
+    room.participants.forEach((participantId) => {
+      const key = participantId.toString();
+      if (key === req.user._id.toString()) return;
+      const current = room.unreadCount.get(key) || 0;
+      room.unreadCount.set(key, current + 1);
+    });
+    await room.save();
+
+    const populated = await Message.findById(message._id)
+      .populate('sender', 'name email role avatar');
+
+    res.status(201).json({ success: true, data: populated });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });

@@ -25,23 +25,41 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-router.post('/', protect, authorize('super_admin', 'company_admin', 'hr_manager', 'accountant'), async (req, res) => {
+// POST /api/payroll/post-to-gl - Post payroll to GL
+router.post('/post-to-gl', protect, authorize('super_admin', 'company_admin', 'accountant'), async (req, res) => {
   try {
+    const { payrollIds } = req.body;
     const companyId = getCompanyId(req);
-    const { employeeId, month, year, basicSalary, allowances, deductions } = req.body;
     
-    const netSalary = basicSalary + (allowances || 0) - (deductions || 0);
+    const payrolls = await Payroll.find({ _id: { $in: payrollIds }, companyId, status: 'approved', glPosted: false });
     
-    const payroll = await Payroll.create({
-      employeeId, month, year, basicSalary, 
-      allowances: allowances || 0, 
-      deductions: deductions || 0, 
-      netSalary, companyId
-    });
+    const results = [];
+    for (const payroll of payrolls) {
+      try {
+        const updated = await require('../services/payrollFinanceService').postPayrollToGL(payroll._id, companyId);
+        results.push(updated);
+      } catch (error) {
+        results.push({ payrollId: payroll._id, error: error.message });
+      }
+    }
     
-    res.status(201).json({ success: true, data: payroll });
+    res.json({ success: true, posted: results.filter(r => r.glPosted !== undefined), errors: results.filter(r => r.error) });
   } catch (error) {
-    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Update payroll status (approve)
+router.put('/:id/approve', protect, authorize('super_admin', 'company_admin', 'hr_manager'), async (req, res) => {
+  try {
+    const payroll = await Payroll.findById(req.params.id);
+    if (!payroll) return res.status(404).json({ message: 'Payroll not found' });
+    
+    payroll.status = 'approved';
+    await payroll.save();
+    
+    res.json({ success: true, data: payroll });
+  } catch (error) {
     res.status(500).json({ message: 'Server Error' });
   }
 });

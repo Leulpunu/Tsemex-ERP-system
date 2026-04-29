@@ -3,7 +3,6 @@ import ChatWindow from '../../components/Chat/ChatWindow'
 import { useState } from 'react'
 
 const ChatLayout = () => {
-  const [isChatSidebarOpen, setIsChatSidebarOpen] = useState(false)
   const [selectedRoom, setSelectedRoom] = useState(null)
 
   return (
@@ -11,6 +10,7 @@ const ChatLayout = () => {
       <div className="w-0 lg:w-80 flex-shrink-0 border-r border-gray-200 bg-gray-50">
         <ChatSidebar 
           isOpen={true}
+          embedded
           onClose={() => {}}
           onRoomSelect={setSelectedRoom}
         />

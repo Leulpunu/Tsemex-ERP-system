@@ -5,7 +5,7 @@ import { logout } from '../../store/slices/authSlice'
 import { 
   LayoutDashboard, Building2, Users, Package, HardHat, 
   Wrench, Globe, Hotel, Truck, Home, DollarSign, Building, 
-  Target, Menu, ChevronDown, Bell, MessageCircle, FileText 
+  Target, Menu, ChevronDown, Bell, MessageCircle, FileText, ClipboardList, Megaphone
 } from 'lucide-react'
 
 import MobileSidebar from '../MobileSidebar'
@@ -27,6 +27,8 @@ const MainLayout = () => {
     { path: '/employees', label: 'Employees', icon: Users },
     { path: '/departments', label: 'Departments', icon: Building },
     { path: '/kpis', label: 'Performance', icon: Target },
+    { path: '/tasks', label: 'Task Breakdown', icon: ClipboardList },
+    { path: '/announcements', label: 'Announcements', icon: Megaphone },
     { path: '/documents', label: 'Documents', icon: FileText },
     { path: '/customers', label: 'Customers', icon: Users },
     { path: '/suppliers', label: 'Suppliers', icon: Truck },
@@ -34,6 +36,9 @@ const MainLayout = () => {
     { path: '/inventory/alerts', label: 'Alerts', icon: Bell },
     { path: '/products', label: 'Inventory', icon: Package },
     { path: '/invoices', label: 'Invoices', icon: DollarSign },
+    { path: '/reports', label: 'Reports', icon: FileText },
+    { path: '/cash', label: 'Cash Management', icon: DollarSign },
+    { path: '/contracts', label: 'Contracts', icon: FileText },
     { path: '/projects', label: 'Projects', icon: HardHat },
     { path: '/work-orders', label: 'Work Orders', icon: Wrench },
     { path: '/shipments', label: 'Shipments', icon: Globe },
@@ -49,17 +54,17 @@ const MainLayout = () => {
         <div className="h-screen flex flex-col">
           {/* Logo */}
           <div className="p-6 border-b border-gray-700">
-              <div className="flex items-center gap-3">
-                <img 
-                  src="/logo.png" 
-                  alt="Tsemex" 
-                  className="h-20 w-20 object-contain"
-                />
-                <div>
-                  <h1 className="text-xl font-bold">Tsemex ERP</h1>
-                  <p className="text-xs opacity-75">Enterprise Edition</p>
-                </div>
+            <div className="flex items-center gap-3">
+              <img 
+                src="/logo.png" 
+                alt="Tsemex" 
+                className="h-20 w-20 object-contain"
+              />
+              <div>
+                <h1 className="text-xl font-bold">Tsemex ERP</h1>
+                <p className="text-xs opacity-75">Enterprise Edition</p>
               </div>
+            </div>
           </div>
 
           {/* Navigation */}
@@ -134,10 +139,11 @@ const MainLayout = () => {
 
               {/* Right: Notifications, Chat, Profile */}
               <div className="flex items-center space-x-3">
-                <button className="p-2 rounded-lg hover:bg-gray-50 relative">
+                <button className="p-2 rounded-lg hover:bg-gray-50 relative" onClick={() => window.location.href = '/announcements'}>
                   <Bell className="h-6 w-6 text-gray-600" />
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
                 </button>
+
                 <button 
                   className="p-2 rounded-lg hover:bg-gray-50"
                   onClick={() => setIsChatOpen(true)}

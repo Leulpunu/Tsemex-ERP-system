@@ -8,8 +8,13 @@ const reportSchema = mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['sales', 'inventory', 'payroll', 'project', 'financial'],
+    enum: ['sales', 'inventory', 'payroll', 'project', 'trialBalance', 'balanceSheet', 'incomeStatement', 'cashFlow', 'arAging', 'apAging', 'glSummary', 'financial'],
     required: true
+  },
+  basis: {
+    type: String,
+    enum: ['cash', 'accrual'],
+    default: 'accrual'
   },
   period: {
     from: { type: Date, required: true },

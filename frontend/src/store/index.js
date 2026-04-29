@@ -2,6 +2,9 @@ import { configureStore } from '@reduxjs/toolkit'
 import authReducer from './slices/authSlice'
 import companyReducer from './slices/companySlice'
 import kpiReducer from './slices/kpiSlice'
+import reportReducer from './slices/reportSlice'
+import cashReducer from './slices/cashSlice'
+import contractReducer from './slices/contractSlice'
 import { chatApi } from './slices/chatSlice'
 
 import employeeReducer from './slices/employeeSlice'
@@ -17,6 +20,8 @@ import shipmentReducer from './slices/shipmentSlice'
 import propertyReducer from './slices/propertySlice'
 import documentReducer from './slices/documentSlice'
 import { stockAlertApi } from './slices/stockAlertSlice'
+import taskReducer from './slices/taskSlice'
+import announcementReducer from './slices/announcementSlice'
 
 
 export const store = configureStore({
@@ -37,6 +42,11 @@ export const store = configureStore({
     workOrders: workOrderReducer,
     shipments: shipmentReducer,
     properties: propertyReducer,
+    tasks: taskReducer,
+    announcements: announcementReducer,
+    reports: reportReducer,
+    cash: cashReducer,
+    contracts: contractReducer,
     [chatApi.reducerPath]: chatApi.reducer,
     [stockAlertApi.reducerPath]: stockAlertApi.reducer,
   },

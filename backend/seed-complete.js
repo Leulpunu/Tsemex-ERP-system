@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const connectDB = require('./config/db');
@@ -16,22 +17,7 @@ const importData = async () => {
 
     console.log('Data deleted...');
 
-    // Create roles first
-    const roles = await Role.insertMany([
-      {
-        name: 'super_admin',
-        department: 'ADMIN',
-        level: 1,
-        dataScope: 'enterprise',
-        approvalLimit: 999999,
-        permissions: {
-          dashboard: { executive: true, departmental: true, operational: true, custom: true, export: true },
-          // ... full permissions for super_admin
-        }
-      }
-    ]);
-
-    // Create company
+    // Create company first (Role requires companyId)
     const company = await Company.create({
       name: 'Tsemex Construction Ltd',
       type: 'construction',
@@ -44,14 +30,26 @@ const importData = async () => {
       }
     });
 
-    // Create super admin user
-    const hashedPassword = await bcrypt.hash('admin123', 12);
+    // Create role with companyId
+    const role = await Role.create({
+      companyId: company._id,
+      name: 'super_admin',
+      department: 'ADMIN',
+      level: 1,
+      dataScope: 'enterprise',
+      approvalLimit: 999999,
+      permissions: {
+        dashboard: { executive: true, departmental: true, operational: true, custom: true, export: true }
+      }
+    });
+
+    // Create super admin user (password auto-hashed by User pre-save hook)
     const superAdmin = await User.create({
       name: 'Super Admin',
       email: 'admin@tsemex.com',
-      password: hashedPassword,
+      password: 'admin123',
       role: 'super_admin',
-      roleId: roles[0]._id,
+      roleId: role._id,
       companyId: company._id,
       isActive: true,
       sessionActive: true

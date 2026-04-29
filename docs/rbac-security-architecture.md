@@ -26,7 +26,7 @@ Enterprise-wide **Strict Role-Based Access Control (RBAC)** with:
 | 3 | Supervisors | Sr Officers, Team Leads | Operational | Team CRUD, Self/Team Approve Low-value |
 | 4 | Entry | Officers, Assistants | Transactional | Self CRUD, No Approve |
 
-**Total Roles**: ~200 (9 C-suite + 9 depts x 4 level2 + 9x5 level3 + 9x5 level4).
+**Total Roles**: ~200 (9 C-suite + 9 depts x 4 level2 + <br>9x5 level3 + 9x5 level4).
 
 ## 4. Department-by-Department Breakdown
 

@@ -145,10 +145,10 @@ const KPIDashboard = () => {
 
       <div className="mt-6 flex gap-3">
         <Link
-          to="/kpis/new"
+          to="/tasks"
           className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl text-center transition-all"
         >
-          + New KPI
+          Assign KPI-linked Task
         </Link>
         <Link
           to="/tasks"

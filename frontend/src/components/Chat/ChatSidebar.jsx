@@ -1,18 +1,32 @@
 import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
-import { useGetRoomsQuery } from '../../store/slices/chatSlice'
 import { MessageCircle, Search, Plus, Users, X } from 'lucide-react'
 import io from 'socket.io-client'
+import { api } from '../../api/client'
 
-const ChatSidebar = ({ isOpen, onClose }) => {
+const ChatSidebar = ({ isOpen, onClose, onRoomSelect, embedded = false }) => {
   const [search, setSearch] = useState('')
   const [socket, setSocket] = useState(null)
   const [selectedRoom, setSelectedRoom] = useState(null)
+  const [rooms, setRooms] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const user = useSelector(state => state.auth.user)
   const token = user?.token
-
-const { data: roomsData, isLoading, error } = useGetRoomsQuery()
-
+  
+  useEffect(() => {
+    const loadRooms = async () => {
+      setIsLoading(true)
+      try {
+        const response = await api.get('/chat/rooms')
+        setRooms(response.data?.data || [])
+      } catch {
+        setRooms([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    if (isOpen) loadRooms()
+  }, [isOpen])
 
   useEffect(() => {
     if (token && !socket) {
@@ -33,9 +47,6 @@ const { data: roomsData, isLoading, error } = useGetRoomsQuery()
     }
   }, [token, socket])
 
-  const rooms = roomsData?.data || []
-
-
   const filteredRooms = rooms.filter(room => 
     room.name?.toLowerCase().includes(search.toLowerCase()) ||
     room.participants.some(p => p.name.toLowerCase().includes(search.toLowerCase()))
@@ -43,6 +54,7 @@ const { data: roomsData, isLoading, error } = useGetRoomsQuery()
 
   const handleRoomSelect = (room) => {
     setSelectedRoom(room)
+    if (onRoomSelect) onRoomSelect(room)
     if (socket) {
       socket.emit('joinRoom', room._id)
     }
@@ -55,14 +67,16 @@ const { data: roomsData, isLoading, error } = useGetRoomsQuery()
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 z-[45] hidden lg:block"
-        onClick={onClose}
-      />
+      {!embedded && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-[45] hidden lg:block"
+          onClick={onClose}
+        />
+      )}
       
       {/* Chat Panel */}
-      <div className={`fixed inset-y-0 right-0 z-50 w-full lg:w-96 h-screen bg-white shadow-2xl transform transition-transform duration-300 ease-in-out border-l border-gray-200 ${
-        isOpen ? 'translate-x-0' : 'translate-x-full'
+      <div className={`${embedded ? 'w-full h-full relative' : 'fixed inset-y-0 right-0 z-50 w-full lg:w-96 h-screen'} bg-white shadow-2xl transform transition-transform duration-300 ease-in-out border-l border-gray-200 ${
+        embedded ? '' : (isOpen ? 'translate-x-0' : 'translate-x-full')
       }`}>
         {/* Header */}
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">

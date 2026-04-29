@@ -25,6 +25,10 @@ const currencySchema = new mongoose.Schema({
     type: Number,
     default: 1
   },
+  rateHistory: [{
+    rate: Number,
+    date: { type: Date, default: Date.now }
+  }],
   isBase: {
     type: Boolean,
     default: false

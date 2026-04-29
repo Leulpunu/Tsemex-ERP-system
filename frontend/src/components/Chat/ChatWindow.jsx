@@ -2,20 +2,32 @@ import { useState, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { api } from '../../api/client'
 import { MessageCircle, Paperclip, Send, ThumbsUp, Bot } from 'lucide-react'
+import io from 'socket.io-client'
 
 const ChatWindow = ({ selectedRoom }) => {
 
   const [messages, setMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [socket, setSocket] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef(null)
   const user = useSelector(state => state.auth.user)
 
-  const { data, isLoading } = useGetRoomMessagesQuery({ 
-    roomId: selectedRoom?._id 
-  }, { skip: !selectedRoom })
-
-  const [sendMessage] = useSendMessageMutation()
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!selectedRoom?._id) return
+      setIsLoading(true)
+      try {
+        const response = await api.get(`/chat/rooms/${selectedRoom._id}/messages`)
+        setMessages(response.data?.data || [])
+      } catch {
+        setMessages([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadMessages()
+  }, [selectedRoom?._id])
 
   useEffect(() => {
     if (selectedRoom && user?.token) {
@@ -35,12 +47,6 @@ const ChatWindow = ({ selectedRoom }) => {
   }, [selectedRoom, user])
 
   useEffect(() => {
-    if (data) {
-      setMessages(data.data || [])
-    }
-  }, [data])
-
-  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
@@ -58,10 +64,7 @@ const ChatWindow = ({ selectedRoom }) => {
     setNewMessage('')
 
     try {
-      await sendMessage({ 
-        roomId: selectedRoom._id, 
-        content: newMessage 
-      }).unwrap()
+      await api.post(`/chat/rooms/${selectedRoom._id}/messages`, { content: newMessage })
     } catch (err) {
       console.error('Failed to send message')
     }

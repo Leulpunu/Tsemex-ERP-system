@@ -32,7 +32,7 @@ const Dashboard = () => {
     { label: 'Total Revenue', value: '$2.4M', icon: DollarSign, color: 'bg-yellow-500', href: '/invoices' },
     { label: 'Pending Invoices', value: '28', icon: FileText, color: 'bg-purple-500', href: '/invoices' },
     { label: 'Stock Items', value: '1,245', icon: Package, color: 'bg-indigo-500', href: '/products' },
-    { label: 'Notifications', value: '3', icon: Bell, color: 'bg-orange-500', href: '/notifications' },
+    { label: 'Announcements', value: '3', icon: Bell, color: 'bg-orange-500', href: '/announcements' },
   ]
 
   const chartData = [

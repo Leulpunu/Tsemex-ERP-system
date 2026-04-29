@@ -10,15 +10,20 @@ const Employee = require('../models/Employee');
 router.get('/', protect, async (req, res) => {
   try {
     const { departmentId, companyId } = req.query;
-    const query = { companyId };
+    const effectiveCompanyId = req.user.role === 'super_admin' ? companyId : req.user.companyId;
+    const query = effectiveCompanyId ? { companyId: effectiveCompanyId } : {};
     
     if (departmentId) query.departmentId = departmentId;
     
-    // Filter by role - managers see their department, super_admins see all
+    // Filter by role - managers see their company departments
     if (req.user.role !== 'super_admin' && req.user.companyId) {
       const departments = await Department.find({ companyId: req.user.companyId });
       const departmentIds = departments.map(d => d._id);
-      query.departmentId = { $in: departmentIds };
+      if (departmentId) {
+        query.departmentId = departmentId;
+      } else {
+        query.departmentId = { $in: departmentIds };
+      }
     }
     
     const kpis = await KPI.find(query)
@@ -56,7 +61,12 @@ router.get('/:id', protect, async (req, res) => {
 // @route   POST /api/kpis
 router.post('/', protect, authorize('manager', 'super_admin'), async (req, res) => {
   try {
-    req.body.companyId = req.user.companyId.toString();
+    req.body.companyId = req.user.role === 'super_admin'
+      ? (req.body.companyId || req.query.companyId)
+      : req.user.companyId?.toString();
+    if (!req.body.companyId) {
+      return res.status(400).json({ message: 'Company ID is required' });
+    }
     req.body.createdBy = req.user._id;
     
     const kpi = await KPI.create(req.body);

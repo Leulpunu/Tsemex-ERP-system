@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
+const Message = require('./models/Message');
+const ChatRoom = require('./models/ChatRoom');
 
 const app = express();
 
@@ -33,6 +36,8 @@ app.use('/api/departments', require('./routes/departments'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/leave', require('./routes/leave'));
 app.use('/api/payroll', require('./routes/payroll'));
+app.use('/api/employee-expenses', require('./routes/employeeExpenses'));
+app.use('/api/timesheets', require('./routes/timesheets'));
 app.use('/api/accounts', require('./routes/accounts'));
 app.use('/api/transactions', require('./routes/transactions'));
 app.use('/api/invoices', require('./routes/invoices'));
@@ -65,6 +70,16 @@ app.use('/api/reports', require('./routes/reports'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/documents', require('./routes/documents'));
 app.use('/api/stock-alerts', require('./routes/stockAlerts'));
+app.use('/api/cash', require('./routes/cash'));
+app.use('/api/tax', require('./routes/tax'));
+app.use('/api/deferred-revenue', require('./routes/deferredRevenue'));
+app.use('/api/fixed-assets', require('./routes/fixedAssets'));
+app.use('/api/intercompany', require('./routes/intercompany'));
+app.use('/api/contracts', require('./routes/contracts'));
+app.use('/api/recurring', require('./routes/recurring'));
+app.use('/api/kpis', require('./routes/kpis'));
+app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/announcements', require('./routes/announcements'));
 
 // Health check & Swagger
 app.get('/api/health', (req, res) => {

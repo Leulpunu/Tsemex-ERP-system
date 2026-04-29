@@ -62,6 +62,14 @@ const payrollSchema = new mongoose.Schema({
     enum: ['draft', 'calculated', 'approved', 'paid'],
     default: 'draft'
   },
+  glPosted: {
+    type: Boolean,
+    default: false
+  },
+  journalEntryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Transaction'
+  },
   paymentDate: {
     type: Date
   },
@@ -81,4 +89,3 @@ const payrollSchema = new mongoose.Schema({
 payrollSchema.index({ employeeId: 1, month: 1, year: 1 }, { unique: true });
 
 module.exports = mongoose.model('Payroll', payrollSchema);
-

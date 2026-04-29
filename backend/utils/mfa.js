@@ -18,7 +18,8 @@ const verifyMFAToken = (secret, token) => {
 };
 
 const generateQRCode = (secret) => {
-  return QRCode.toDataURL(secret.otpauth_url);
+  const url = typeof secret === 'string' ? secret : secret.otpauth_url;
+  return QRCode.toDataURL(url);
 };
 
 module.exports = {

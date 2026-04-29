@@ -4,11 +4,12 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const Company = require('../models/Company');
+const Role = require('../models/Role');
 const { protect } = require('../middleware/auth');
 
 // Generate Tokens
 const generateTokens = (id) => {
-accessToken = jwt.sign({ id }, process.env.JWT_SECRET, {
+  const accessToken = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: '15m'
   });
   return { accessToken };
@@ -47,6 +48,16 @@ router.post('/register', [
       }
     }
 
+    // Auto-assign roleId if not provided
+    let roleId = req.body.roleId;
+    if (!roleId) {
+      const defaultRole = await Role.findOne({ name: 'employee' }) || await Role.findOne();
+      if (!defaultRole) {
+        return res.status(400).json({ message: 'No roles configured. Please contact administrator.' });
+      }
+      roleId = defaultRole._id;
+    }
+
     // Create user
     const user = await User.create({
       name,
@@ -55,6 +66,7 @@ router.post('/register', [
       phone,
       companyId,
       role: role || 'employee',
+      roleId,
       departmentId: req.body.departmentId,
       rank: req.body.rank
     });
