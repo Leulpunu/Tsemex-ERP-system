@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "postinstall": "chmod -R a+rx node_modules/.bin || true"
+    "postinstall": "chmod -R a+rx node_modules/.bin || true",
+    "prebuild": "chmod -R a+rx node_modules/.bin || true"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.0.1",
