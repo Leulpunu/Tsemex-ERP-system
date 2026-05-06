@@ -5,6 +5,9 @@ const ChatRoom = require('../models/ChatRoom');
 const Message = require('../models/Message');
 const { protect } = require('../middleware/auth');
 
+// Typing indicators are emitted via Socket.io. No DB writes required.
+
+
 // @route   GET /api/chat/rooms
 // @desc    Get user's chat rooms  
 // @access  Private

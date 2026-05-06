@@ -3,8 +3,10 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
+const path = require('path');
 const Message = require('./models/Message');
 const ChatRoom = require('./models/ChatRoom');
+
 
 const app = express();
 
@@ -137,7 +139,7 @@ io.on('connection', (socket) => {
         content: data.content
       });
       await message.save();
-      
+
       // Update room lastMessage
       await ChatRoom.findByIdAndUpdate(data.roomId, { 
         lastMessage: message._id 
@@ -145,13 +147,34 @@ io.on('connection', (socket) => {
 
       // Broadcast to room
       io.to(`room_${data.roomId}`).emit('newMessage', message);
-      
     } catch (err) {
       socket.emit('error', 'Failed to send message');
     }
   });
 
+  // Typing indicators
+  socket.on('typing', ({ roomId, isTyping }) => {
+    if (!roomId) return;
+    socket.broadcast.to(`room_${roomId}`).emit('typing', {
+      roomId,
+      userId: socket.user.id,
+      isTyping: Boolean(isTyping)
+    });
+  });
+
+  // Read receipts
+  socket.on('messageRead', ({ roomId, messageId }) => {
+    if (!roomId) return;
+    socket.broadcast.to(`room_${roomId}`).emit('messageRead', {
+      roomId,
+      messageId,
+      userId: socket.user.id,
+      readAt: Date.now()
+    });
+  });
+
   socket.on('disconnect', () => {
+
     console.log(`User ${socket.user.id} disconnected`);
   });
 });
@@ -159,11 +182,17 @@ io.on('connection', (socket) => {
 // Error Handler
 app.use(require('./middleware/errorHandler'));
 
+// Serve uploaded documents (PDF/images)
+app.use('/uploads/documents', express.static(path.join(__dirname, 'uploads/documents')));
+
+
 const PORT = process.env.PORT || 5000;
+
 
 server.listen(PORT, () => {
   console.log(`Server with Socket.io running on port ${PORT}`);
 });
+
 
 // Graceful shutdown
 process.on('SIGTERM', () => {

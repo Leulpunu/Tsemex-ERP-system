@@ -1,6 +1,10 @@
 import { useState } from 'react'
-import { Link, useLocation, Outlet } from 'react-router-dom'
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom'
+
+
+
 import { useSelector, useDispatch } from 'react-redux'
+
 import { logout } from '../../store/slices/authSlice'
 import { 
   LayoutDashboard, Building2, Users, Package, HardHat, 
@@ -139,7 +143,11 @@ const MainLayout = () => {
 
               {/* Right: Notifications, Chat, Profile */}
               <div className="flex items-center space-x-3">
-                <button className="p-2 rounded-lg hover:bg-gray-50 relative" onClick={() => window.location.href = '/announcements'}>
+                <button
+                  className="p-2 rounded-lg hover:bg-gray-50 relative"
+                  onClick={() => navigate('/announcements')}
+                >
+
                   <Bell className="h-6 w-6 text-gray-600" />
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">3</span>
                 </button>

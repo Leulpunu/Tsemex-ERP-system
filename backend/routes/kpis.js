@@ -15,6 +15,26 @@ router.get('/', protect, async (req, res) => {
     
     if (departmentId) query.departmentId = departmentId;
     
+    // Filter current period KPIs only
+    if (req.query.period === 'current') {
+      const now = new Date();
+      if (!query.$and) query.$and = [];
+      query.$and.push({ startDate: { $lte: now } });
+      query.$and.push({ endDate: { $gte: now } });
+      query.$and.push({ status: 'active' });
+    }
+    
+    // Filter current period KPIs only
+    if (req.query.period === 'current') {
+      const now = new Date();
+      if (!query.$and) query.$and = [];
+      query.$and.push(
+        { startDate: { $lte: now } },
+        { endDate: { $gte: now } },
+        { status: 'active' }
+      );
+    }
+    
     // Filter by role - managers see their company departments
     if (req.user.role !== 'super_admin' && req.user.companyId) {
       const departments = await Department.find({ companyId: req.user.companyId });

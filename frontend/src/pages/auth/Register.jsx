@@ -48,10 +48,7 @@ const Register = () => {
 
   return (
     <div>
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">TSEMEX ERP</h1>
-        <p className="text-gray-500 mt-2">Create your account</p>
-      </div>
+      
 
       <form onSubmit={onSubmit}>
         <div className="mb-4">

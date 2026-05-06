@@ -1,14 +1,10 @@
-# Tsemex ERP - Run Project Steps
-
-## Current Task: Fix frontend error and ensure smooth running
-
-**Step 1: [✅ COMPLETE] Fix missing Repeat icon import in frontend/src/App.jsx**
-
-**Step 2: [✅ COMPLETE] Verify app loads without JavaScript errors at http://localhost:5173**
-
-**Step 3: [PENDING] Test basic functionality (login if DB connected)**
-
-Servers are running:
-- Backend: [http://localhost:5000](http://localhost:5000)
-- Frontend: [http://localhost:5173](http://localhost:5173)
+# KPI Dashboard Zero-Initialization Fix
+- [x] 1. Update backend/routes/kpis.js: Add `?period=current` filter (startDate <= now <= endDate, status='active')
+</new_str
+- [x] 2. Update frontend/src/store/slices/kpiSlice.js: getKpis accepts/uses params (?period
+- [x] 3. Update frontend/src/pages/hr/KPIDashboard.jsx: dispatch(getKpis({period: 'current'}))
+- [x] 4. Restart backend/frontend: Run `start-all.bat
+- [ ] 5. Test: Dashboard shows 0/empty KPIs initially
+- [ ] 6. Create/update KPI, verify actualValue increments progress from 0
+- [ ] 7. Check seed.js doesn't create active current-period KPIs with values
 

@@ -12,9 +12,8 @@ const KPIDashboard = () => {
   const { departments = [] } = useSelector((state) => state.departments)
 
   useEffect(() => {
-    dispatch(getKpis())
+    dispatch(getKpis({ period: 'current' }))
   }, [dispatch])
-
 
   const getDepartmentKPIs = (departmentId) => {
     return kpis.filter(kpi => kpi.departmentId._id === departmentId)

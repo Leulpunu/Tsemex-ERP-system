@@ -68,8 +68,31 @@ router.post('/', protect, authorize('super_admin', 'company_admin', 'hr_manager'
       return res.status(400).json({ message: 'Company ID is required' });
     }
 
-    const employeeData = { ...req.body, companyId };
+    // Normalize empty values coming from the client (selects often send "").
+    const cleanedBody = { ...req.body };
+
+    // employeeId is derived in the model pre('save')
+    // Ensure empty string/undefined never reaches Mongoose.
+    if (cleanedBody.employeeId === '' || cleanedBody.employeeId === undefined) {
+      delete cleanedBody.employeeId
+    }
+
+    // departmentId is ObjectId; never allow empty string to be cast.
+    if (cleanedBody.departmentId === '' || cleanedBody.departmentId === undefined) {
+      delete cleanedBody.departmentId
+    }
+
+    // roleId is ObjectId; never allow empty string to be cast.
+    if (cleanedBody.roleId === '' || cleanedBody.roleId === undefined) {
+      delete cleanedBody.roleId
+    }
+
+
+
+    const employeeData = { ...cleanedBody, companyId };
+
     const employee = await Employee.create(employeeData);
+
 
     // Create user account for employee
     const user = await User.create({
@@ -102,8 +125,20 @@ router.put('/:id', protect, async (req, res) => {
       return res.status(404).json({ message: 'Employee not found' });
     }
 
-    employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    // Prevent client from sending invalid immutable/derived fields.
+    // employeeId is generated in the Employee model pre('save'), and is required.
+    // If employeeId is missing in payload, mongoose will generate it automatically on save.
+    if (req.body.employeeId === undefined) {
+      // no-op; keep missing so pre-save can generate
+    } else if (req.body.employeeId === '') {
+      delete req.body.employeeId
+    }
+
+    // Use findOneAndUpdate with runValidators; pre-save hooks won't run on update.
+    // Ensure employeeId is not required to be supplied by the client on update.
+    employee = await Employee.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true, context: 'query' });
     res.json({ success: true, data: employee });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });

@@ -9,9 +9,10 @@ const extractMessage = (error) =>
 // Get KPIs
 export const getKpis = createAsyncThunk(
   'kpi/getKpis', 
-  async (_, thunkAPI) => {
+  async (params = {}, thunkAPI) => {
     try {
-      const response = await api.get('/kpis')
+      const queryString = Object.keys(params).length > 0 ? `?${new URLSearchParams(params).toString()}` : '';
+      const response = await api.get(`/kpis${queryString}`)
       return response.data
     } catch (error) {
       return thunkAPI.rejectWithValue(extractMessage(error))

@@ -10,6 +10,8 @@ const ChatWindow = ({ selectedRoom }) => {
   const [newMessage, setNewMessage] = useState('')
   const [socket, setSocket] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [typingUsers, setTypingUsers] = useState([])
+
   const messagesEndRef = useRef(null)
   const user = useSelector(state => state.auth.user)
 
@@ -50,8 +52,92 @@ const ChatWindow = ({ selectedRoom }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  // Typing indicator handlers
+  const handleTyping = (isTyping) => {
+    if (!selectedRoom?._id || !socket) return
+    socket.emit('typing', { roomId: selectedRoom._id, isTyping })
+  }
+
+  const markMessagesRead = (ids = []) => {
+    if (!selectedRoom?._id || !socket) return
+    ids.filter(Boolean).forEach((messageId) => {
+      socket.emit('messageRead', { roomId: selectedRoom._id, messageId })
+    })
+  }
+
+  const [readBy, setReadBy] = useState({})
+
+  // Emit read receipts when messages load/arrive and user has the latest view
+  useEffect(() => {
+    if (!selectedRoom?._id) return
+    if (!socket) return
+    if (!messages || messages.length === 0) return
+
+    // Mark only messages that are not from the current user
+    const unreadLike = messages
+      .filter((m) => m && m.sender?._id && m.sender._id !== user?._id)
+      .map((m) => m._id)
+
+    // Avoid spamming: emit at most last 10
+    markMessagesRead(unreadLike.slice(0, 10))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, selectedRoom?._id, socket])
+
+  // Receive read receipts
+  useEffect(() => {
+    if (!socket) return
+
+    const handleMessageRead = ({ roomId, messageId, userId }) => {
+      if (!selectedRoom?._id) return
+      if (roomId !== selectedRoom._id) return
+      if (!messageId || !userId) return
+
+      setReadBy((prev) => {
+        const next = { ...prev }
+        const current = next[messageId] || new Set()
+        current.add(userId)
+        next[messageId] = current
+        return next
+      })
+    }
+
+    socket.on('messageRead', handleMessageRead)
+    return () => {
+      socket.off('messageRead', handleMessageRead)
+    }
+  }, [socket, selectedRoom?._id])
+
+
+  useEffect(() => {
+    if (!socket) return
+
+    const handleTypingEvent = ({ roomId, userId, isTyping }) => {
+      if (!selectedRoom?._id) return
+      if (roomId !== selectedRoom._id) return
+      setTypingUsers(prev => {
+        const exists = prev.some(u => u.userId === userId)
+        if (Boolean(isTyping)) {
+          if (exists) return prev
+          return [...prev, { userId }]
+        }
+        return prev.filter(u => u.userId !== userId)
+      })
+    }
+
+    socket.on('typing', handleTypingEvent)
+    return () => {
+      socket.off('typing', handleTypingEvent)
+    }
+  }, [socket, selectedRoom])
+
+  useEffect(() => {
+    // Clear typing state when switching rooms
+    setTypingUsers([])
+  }, [selectedRoom])
+
   const handleSend = async () => {
     if (!newMessage.trim() || !selectedRoom) return
+
 
     // Optimistic update
     const tempMessage = {
@@ -120,7 +206,14 @@ const ChatWindow = ({ selectedRoom }) => {
               }`}>
                 <p className="text-sm">{message.content}</p>
                 <div className="flex items-center gap-2 mt-1 text-xs opacity-75">
-                  <span>{new Date(message.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                  <span>
+                    {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                  {message.sender._id !== user._id && (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/70 border">
+                      {(readBy[message._id]?.size || 0) > 0 ? 'Read' : 'Sent'}
+                    </span>
+                  )}
                   <ThumbsUp size={12} className="cursor-pointer hover:scale-110" />
                 </div>
               </div>
@@ -138,6 +231,15 @@ const ChatWindow = ({ selectedRoom }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Typing indicator */}
+      {typingUsers.length > 0 && (
+        <div className="px-4 -mt-2 pb-2">
+          <p className="text-sm text-gray-500">
+            {typingUsers.length === 1 ? 'Someone is typing...' : `${typingUsers.length} people are typing...`}
+          </p>
+        </div>
+      )}
+
       {/* Input */}
       <div className="p-4 border-t border-gray-200 bg-white">
         <div className="flex items-end gap-2">
@@ -147,9 +249,15 @@ const ChatWindow = ({ selectedRoom }) => {
               placeholder="Type a message..."
               className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value
+                setNewMessage(val)
+                // Emit typing when user is actively typing
+                handleTyping(val.trim().length > 0)
+              }}
               onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
             />
+
             <button className="absolute right-3 bottom-3 text-gray-400 hover:text-gray-600">
               <Paperclip size={18} />
             </button>

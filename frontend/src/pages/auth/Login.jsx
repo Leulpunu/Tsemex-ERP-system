@@ -22,11 +22,20 @@ const Login = () => {
     if (isError) {
       toast.error(message)
     }
-    if (user || isSuccess) {
+
+    // Navigate once login/register succeeds.
+    if (isSuccess && user) {
       navigate('/')
     }
-    dispatch(reset())
-  }, [user, isError, isSuccess, message, navigate, dispatch])
+
+    // Avoid resetting auth state immediately on first render,
+    // which can cause duplicated UI during login.
+    // Reset only after navigation or error.
+    if (isError) {
+      dispatch(reset())
+    }
+  }, [isError, isSuccess, user, message, navigate, dispatch])
+
 
   const onChange = (e) => {
     setFormData((prev) => ({
@@ -42,11 +51,7 @@ const Login = () => {
 
   return (
     <div>
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">TSEMEX ERP</h1>
-        <p className="text-gray-500 mt-2">Sign in to your account</p>
-      </div>
-
+      
       <form onSubmit={onSubmit}>
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">

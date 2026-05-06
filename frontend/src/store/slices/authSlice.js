@@ -1,16 +1,17 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { api } from '../../api/client'
 
-const storedUser = JSON.parse(localStorage.getItem('user'))
-
 const normalizeAuthResponse = (payload) => {
+
+
   if (!payload) return null
   if (payload.token && payload.data) return { ...payload.data, token: payload.token }
   return payload
 }
 
 const initialState = {
-  user: null, // Always start with no user (fresh login)
+  user: null, // start clean
+
   isLoading: false,
   isError: false,
   isSuccess: false,
