@@ -5,12 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm ci --include=optional && vite build",
     "preview": "vite preview",
     "postinstall": "chmod -R a+rx node_modules/.bin || true",
     "prebuild": "chmod -R a+rx node_modules/.bin || true"
   },
   "dependencies": {
+    "rollup": "4.28.0",
     "@reduxjs/toolkit": "^2.0.1",
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.6.2",
@@ -24,6 +25,7 @@
     "recharts": "^3.8.0",
     "socket.io-client": "^4.8.3"
   },
+
   "devDependencies": {
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
